@@ -4,43 +4,52 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import kotlinx.android.synthetic.main.activity_launch.*
+import kotlinx.android.synthetic.main.activity_counter.*
 import kotlinx.coroutines.*
 
 /**
  * see video:
  * https://www.youtube.com/watch?v=Cq3di5lfMkY&t=1203s
  */
-class LaunchActivity : AppCompatActivity() {
+class CounterActivity : AppCompatActivity() {
     companion object {
         const val TAG = "AAA"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_launch)
+        setContentView(R.layout.activity_counter)
 
         val result = runCatching {
-            //startTest01(2)
-            //startTest02(2)
-            startTest03(2)
+            startTest01(2)
+            lifecycleScope.launch(Dispatchers.Main) {
+                delay(11000)
+                startTest02(2)
+            }
+            lifecycleScope.launch(Dispatchers.Main) {
+                delay(23000)
+                startTest03(2)
+            }
         }
+
         if (result.isFailure) {
             Log.e(TAG, "Si è verificato un errore", result.exceptionOrNull())
         }
     }
 
     private fun startTest01(ripCount: Int) {
-        ripeatText.text = getString(R.string.ripetizioni_msg, ripCount.toString())
+        testText.text = getString(R.string.test_msg, "01")
+        ripeatText.text = getString(R.string.ripetizioni_msg, ripCount)
         Log.i(TAG, "startTest01\t[${Thread.currentThread().name}]")
-        lifecycleScope.async(Dispatchers.IO) {
-            repeat(ripCount) {
-                startCounter().await()
+        val deferred = lifecycleScope.async {
+            repeat(ripCount) { i: Int ->
+                stepText.text = getString(R.string.step_msg, i + 1)
+                startCounter1().await()
             }
         }
     }
 
-    private fun startCounter() = lifecycleScope.async(Dispatchers.Main) {
+    private fun startCounter1() = lifecycleScope.async(Dispatchers.Main) {
         for (i in 5 downTo 0) {
             counterText.text = i.toString()
             delay(1000L)
@@ -57,10 +66,13 @@ class LaunchActivity : AppCompatActivity() {
     }
 
     private fun startTest02(ripCount: Int) {
-        ripeatText.text = getString(R.string.ripetizioni_msg, ripCount.toString())
+        testText.text = getString(R.string.test_msg, "02")
+        ripeatText.text = getString(R.string.ripetizioni_msg, ripCount)
         Log.i(TAG, "startTest02\t[${Thread.currentThread().name}]")
+
         lifecycleScope.launch {
-            repeat(ripCount) {
+            repeat(ripCount) { j: Int ->
+                stepText.text = getString(R.string.step_msg, j + 1)
                 Log.i(TAG, "repeat\t[${Thread.currentThread().name}]")
                 for (i in 5 downTo 0) {
                     val counter = getCounter(i).await()
@@ -78,10 +90,12 @@ class LaunchActivity : AppCompatActivity() {
     }
 
     private fun startTest03(ripCount: Int) {
-        ripeatText.text = getString(R.string.ripetizioni_msg, ripCount.toString())
+        testText.text = getString(R.string.test_msg, "03")
+        ripeatText.text = getString(R.string.ripetizioni_msg, ripCount)
         Log.i(TAG, "startTest03\t[${Thread.currentThread().name}]")
         lifecycleScope.launch {
             for (j in 1..ripCount) {
+                stepText.text = getString(R.string.step_msg, j)
                 for (i in 5 downTo 0) {
                     var retVal: Int
                     val result = withContext(Dispatchers.IO) {

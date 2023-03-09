@@ -35,7 +35,7 @@ class Basic01 {
      * Un ambito esterno non può essere completato finché tutte le sue coroutine figli non sono state completate.
      */
     @Test
-    fun `esgue due routine contemporanemante`() = runBlocking {
+    fun `Esegue due routine contemporanemante`() = runBlocking {
         Log.d(TAG, ":Inizio!   ")
         this.launch(Dispatchers.Default) {
             for (i in 0..5) {
@@ -54,7 +54,7 @@ class Basic01 {
 
     @Test
     fun `Invoke suspending fun and continue`() = runBlocking { // this: CoroutineScope
-        launch(Dispatchers.IO) { `suspending function in runBlocking`() }
+        launch(Dispatchers.IO) { repeatWorld() }
         for (i in 0..5) {
             Log.d(TAG, "$i) Hello ")
             delay(100L) // blocking delay
@@ -62,7 +62,7 @@ class Basic01 {
         Log.d(TAG, "Fine!")
     }
 
-    private suspend fun `suspending function in runBlocking`() {
+    private suspend fun repeatWorld() {
         for (i in 0..5) {
             Log.d(TAG, "$i) World!") // print after delay
             delay(1000L) //blocking delay
