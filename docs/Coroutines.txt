@@ -1,0 +1,108 @@
+La documentazione ufficiale di Kotlin e delle coroutines:
+https://kotlinlang.org/docs/coroutines-overview.html#how-to-start
+
+La documentazione ufficiale di Android e delle coroutines Android:
+https://developer.android.com/docs e https://developer.android.com/kotlin/coroutines
+
+Tutorial su Kotlin coroutines su Kotlin Academy:
+https://blog.kotlin-academy.com/tagged/coroutines
+
+Tutorial su Kotlin coroutines su Android Developers:
+https://developer.android.com/kotlin/coroutines/coroutines-overview
+
+Tutorial su Kotlin coroutines su Ray Wenderlich:
+https://www.raywenderlich.com/1423941-kotlin-coroutines-tutorial-for-android-getting-started
+
+
+dipendenze di Kotlin coroutines, e 
+dipendenza delle coroutines Android per integrare le coroutines con le funzionalità specifiche di Android come lifecycle, room, workmanager e altre librerie Android
+
+dependencies {
+    // ...
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:<version>"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:<version>"
+}
+
+
+es: In questo esempio, GlobalScope.launch crea una nuova coroutine per eseguire 
+il blocco di codice all'interno della coroutine.
+Dispatchers.IO specifica il contesto della coroutine in cui verrà eseguita la chiamata
+di rete, mentre withContext(Dispatchers.Main) specifica il contesto della coroutine
+in cui verrà aggiornata l'interfaccia utente.
+
+GlobalScope.launch(Dispatchers.IO) {
+    // Esegui la chiamata di rete asincrona
+    val result = apiService.fetchData()
+
+    // Aggiorna l'interfaccia utente con il risultato
+    withContext(Dispatchers.Main) {
+        textView.text = result
+    }
+}
+
+In questo esempio, GlobalScope.launch crea una nuova coroutine per eseguire il blocco di
+codice all'interno della coroutine. Dispatchers.IO specifica il contesto della coroutine
+in cui verrà eseguita la chiamata di rete, mentre withContext(Dispatchers.Main) specifica
+il contesto della coroutine in cui verrà aggiornata l'interfaccia utente.
+__________________________________________________________________________________________
+
+https://kotlinlang.org/docs/coroutines-guide.html
+
+kotlinx-coroutines-core
+è una ricca libreria per le coroutine sviluppata da JetBrains
+Contiene primitive abilitate per le coroutine di alto livello tra cui launch, async,..
+
+Una coroutine è un'istanza di calcolo sospendibile, 
+concettualmente simile a un thread nel senso che richiede l'esecuzione di un blocco 
+di codice in concomitanza con un altro blocco di codice.
+In realtà le coroutine sono molto diverso dai thread, non sono legate a nessun particolare
+thread, una coroutine può sospendere la sua esecuzione in un thread e riprenderla in un
+altro.
+Tra i principali costruttori di coroutine: launch, async, o runBlocking
+ma ci possono essere altri costruttori di coroutine a seconda della libreria utilizzata.
+La differenza principale tra asynce launch è che 
+ - async avvia una coroutine e restituisce un oggetto Deferred<T>, un tipo generico che
+   estende Job, ovvero promette il risultato in futuro.
+   Per ottenere il risultato della coroutine: await() sull'istanza della Deferred che 
+   sospende l'esecuzione della coroutine fino al ritorno del risultato.
+ - launch invece viene utilizzato per avviare un calcolo che non restituisce un risultato
+
+launch, async, runBlocking vengono utilizzati per avviare una nuova coroutine,
+creano implicitamente lo scope corrispondente (CoroutineScope) inoltre mentre
+launche e async sono dichiarati come estensioni Kotlin di CoroutineScope,
+runBlocking è definita come una funzione di primo livello e poiché blocca il thread
+corrente è inteso principalmente per le funzioni main() e test (@Test).
+
+coroutineScope() è una funzione progettata per la scomposizione parallela del lavoro,
+ crea un CoroutineScope con un Job e chiama il blocco di sospensione specificato con questo
+ scope.
+ NB: Quando una coroutine figlio in questo scope fallisce, tutto lo scope fallisce e gli
+     altri figli vengono cancellati!!
+
+supervisorScope() crea un CoroutineScope con un SupervisorJob e chiama il blocco di
+ sospensione specificato con questo scope.
+ NB: a differenza di coroutineScope, un errore di un elemento figlio non causa il fallimento
+     di questo scope e non influisce sugli altri elementi figlio, quindi è possibile
+     implementare una politica personalizzata per la gestione degli errori dei relativi
+     elementi figlio!!
+
+E'possibile avviare una nuova coroutine dallo scope globale usando GlobalScope.async o 
+GlobalScope.launch. Questo creerà una coroutine "indipendente" di primo livello.
+Quando si utilizza GlobalScope.async tutte le coroutine avviate sono indipendenti: 
+la loro durata è limitata solo dalla durata dell'intera applicazione. 
+
+Lo scope può annullare automaticamente le coroutine figlio se qualcosa va storto o se un utente
+cambia idea e decide di revocare l'operazione cancel().
+
+I Canali:
+Le coroutine possono comunicare tra loro attraverso i canali ovvero primitive di
+comunicazione. Una o più coroutine possono inviare informazioni allo stesso canale e una
+o più coroutine possono ricevere dati da esso.
+Quando molte coroutine ricevono informazioni dallo stesso canale, ogni elemento viene
+gestito solo una volta da uno dei consumatori. Una volta gestito, un elemento viene
+immediatamente rimosso dal canale. Il canale quindi è simile ad una coda ma a differenza
+della coda il canale può sopspendere send() se è pieno (ovvero la dimensione del canale ha
+un limite superiore) e receive() se è vuoto.
+I canali possono essere Unlimited, Buffered, Rendezvous, Conflated
+vedi: https://kotlinlang.org/docs/coroutines-and-channels.html#channels
+

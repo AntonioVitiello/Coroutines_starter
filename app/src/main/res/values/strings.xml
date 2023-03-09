@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Coroutines_core</string>
+    <string name="ripetizioni_msg">Ripetizioni: %s</string>
+</resources>
