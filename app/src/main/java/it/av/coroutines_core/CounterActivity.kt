@@ -22,28 +22,11 @@ class CounterActivity : AppCompatActivity() {
         setContentView(R.layout.activity_counter)
 
         val result = runCatching {
-            lifecycleScope.launch(Dispatchers.Main) {
-                val job1 = launch {
-                    startTest01(2)
-                    delay(11000)
-                }
-
-                job1.join()
-                val job2 = launch(Dispatchers.Main) {
-                    startTest02(2)
-                    delay(12000)
-                }
-
-                job2.join()
-                val job3 = lifecycleScope.launch(Dispatchers.Main) {
-                    startTest03(2)
-                    delay(13000)
-                }
-
-                job3.join()
-                lifecycleScope.launch(Dispatchers.Main) {
-                    finalText.isVisible = true
-                }
+            lifecycleScope.launch(Dispatchers.Main) { //attività consecutive
+                startTest01(2)
+                startTest02(2)
+                startTest03(2)
+                finalText.isVisible = true
             }
         }
 
@@ -52,26 +35,26 @@ class CounterActivity : AppCompatActivity() {
         }
     }
 
-    private fun startTest01(ripCount: Int) {
+    private suspend fun startTest01(ripCount: Int) = coroutineScope {
         testText.text = getString(R.string.test_msg, "01")
         ripeatText.text = getString(R.string.ripetizioni_msg, ripCount)
         Log.i(TAG, "startTest01\t[${Thread.currentThread().name}]")
-        val deferred = lifecycleScope.async {
+        val deferred = async {
             repeat(ripCount) { i: Int ->
                 stepText.text = getString(R.string.step_msg, i + 1)
-                startCounter1().await()
+                startCounterAsync().await()
             }
         }
     }
 
-    private fun startCounter1() = lifecycleScope.async(Dispatchers.Main) {
+    private fun startCounterAsync() = lifecycleScope.async(Dispatchers.Main) {
         for (i in 5 downTo 0) {
             counterText.text = i.toString()
             delay(1000L)
         }
     }
 
-    private fun startCounter2() = lifecycleScope.async {
+    private fun startCounterWithContextAsync() = lifecycleScope.async {
         withContext(Dispatchers.Main) {
             for (i in 5 downTo 0) {
                 counterText.text = i.toString()
@@ -80,17 +63,17 @@ class CounterActivity : AppCompatActivity() {
         }
     }
 
-    private fun startTest02(ripCount: Int) {
+    private suspend fun startTest02(ripCount: Int) = coroutineScope {
         testText.text = getString(R.string.test_msg, "02")
         ripeatText.text = getString(R.string.ripetizioni_msg, ripCount)
         Log.i(TAG, "startTest02\t[${Thread.currentThread().name}]")
 
-        lifecycleScope.launch {
+        launch {
             repeat(ripCount) { j: Int ->
                 stepText.text = getString(R.string.step_msg, j + 1)
                 Log.i(TAG, "repeat\t[${Thread.currentThread().name}]")
                 for (i in 5 downTo 0) {
-                    val counter = getCounter(i).await()
+                    val counter = getCounterAsync(i).await()
                     Log.i(TAG, "counter\t[${Thread.currentThread().name}]")
                     counterText.text = counter.toString()
                 }
@@ -98,17 +81,17 @@ class CounterActivity : AppCompatActivity() {
         }
     }
 
-    private fun getCounter(index: Int) = lifecycleScope.async(Dispatchers.IO) {
+    private fun getCounterAsync(index: Int) = lifecycleScope.async(Dispatchers.IO) {
         Log.i(TAG, "getCounter\t[${Thread.currentThread().name}]")
         delay(1000L)
         return@async index
     }
 
-    private fun startTest03(ripCount: Int) {
+    private suspend fun startTest03(ripCount: Int) = coroutineScope {
         testText.text = getString(R.string.test_msg, "03")
         ripeatText.text = getString(R.string.ripetizioni_msg, ripCount)
         Log.i(TAG, "startTest03\t[${Thread.currentThread().name}]")
-        lifecycleScope.launch {
+        launch {
             for (j in 1..ripCount) {
                 stepText.text = getString(R.string.step_msg, j)
                 for (i in 5 downTo 0) {
