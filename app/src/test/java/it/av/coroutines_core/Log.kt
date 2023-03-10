@@ -26,13 +26,14 @@ class Log {
             log("$tag: $msg", LogLevel.WARNING)
         }
 
-        fun e(tag: String, msg: String, thr: Throwable? = null) {
-            log("$tag: $msg, ${thr?.printStackTrace()}", LogLevel.ERROR)
+        fun e(tag: String, msg: String? = null, thr: Throwable? = null) {
+            val message = { msg ?: "" }
+            log("$tag: $message, ${thr?.printStackTrace()}", LogLevel.ERROR)
         }
 
-        fun log(msg: String, logLevel: LogLevel = LogLevel.EMPTY) {
+        private fun log(msg: String, logLevel: LogLevel = LogLevel.EMPTY) {
             val time = shortTimeFormat.format(Date())
-            println("$time ${logLevel.initial} $msg\t[${Thread.currentThread().name}]")
+            println("$time ${logLevel.initial} [${Thread.currentThread().name}] $msg")
         }
     }
 

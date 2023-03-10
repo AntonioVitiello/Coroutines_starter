@@ -3,6 +3,7 @@ package it.av.coroutines_core
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import kotlinx.android.synthetic.main.activity_counter.*
 import kotlinx.coroutines.*
@@ -21,14 +22,28 @@ class CounterActivity : AppCompatActivity() {
         setContentView(R.layout.activity_counter)
 
         val result = runCatching {
-            startTest01(2)
             lifecycleScope.launch(Dispatchers.Main) {
-                delay(11000)
-                startTest02(2)
-            }
-            lifecycleScope.launch(Dispatchers.Main) {
-                delay(23000)
-                startTest03(2)
+                val job1 = launch {
+                    startTest01(2)
+                    delay(11000)
+                }
+
+                job1.join()
+                val job2 = launch(Dispatchers.Main) {
+                    startTest02(2)
+                    delay(12000)
+                }
+
+                job2.join()
+                val job3 = lifecycleScope.launch(Dispatchers.Main) {
+                    startTest03(2)
+                    delay(13000)
+                }
+
+                job3.join()
+                lifecycleScope.launch(Dispatchers.Main) {
+                    finalText.isVisible = true
+                }
             }
         }
 

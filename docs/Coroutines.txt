@@ -106,3 +106,7 @@ un limite superiore) e receive() se è vuoto.
 I canali possono essere Unlimited, Buffered, Rendezvous, Conflated
 vedi: https://kotlinlang.org/docs/coroutines-and-channels.html#channels
 
+Quando una coroutine viene lanciata nel CoroutineScope di un'altra coroutine, eredita il
+suo contesto tramite CoroutineScope.coroutineContext e il Job della nuova coroutine diventa
+figlio del job della coroutine padre. Quando la coroutine genitore viene cancellata, anche
+tutti i suoi figli vengono cancellati ricorsivamente.

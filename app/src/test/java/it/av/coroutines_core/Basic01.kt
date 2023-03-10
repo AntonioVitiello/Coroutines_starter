@@ -173,7 +173,7 @@ class Basic01 {
     }
 
     @Test
-    fun `cancelable coroutine`() = runBlocking {
+    fun `Cancelable coroutine`() = runBlocking {
         val startTime = System.currentTimeMillis()
         val job = launch(Dispatchers.Default) {
             var nextPrintTime = startTime
@@ -193,7 +193,7 @@ class Basic01 {
     }
 
     @Test
-    fun `non cancelable coroutine`() = runBlocking {
+    fun `Non Cancelable coroutine`() = runBlocking {
         val startTime = System.currentTimeMillis()
         val job = launch(Dispatchers.Default) {
             var nextPrintTime = startTime
@@ -213,7 +213,7 @@ class Basic01 {
     }
 
     @Test
-    fun `non cancelable coroutine not rethrows`() = runBlocking {
+    fun `Non cancelable coroutine not rethrows`() = runBlocking {
         val job = launch(Dispatchers.Default) {
             repeat(5) { i ->
                 try {
@@ -236,7 +236,7 @@ class Basic01 {
      * https://kotlinlang.org/docs/cancellation-and-timeouts.html#timeout
      */
     @Test
-    fun `timeout or null`() = runBlocking {
+    fun `Timeout cancel coroutine before produce result`() = runBlocking {
         val result = withTimeoutOrNull(2300L) {
             repeat(1000) { i ->
                 Log.d(TAG, "I'm sleeping $i ...")
@@ -251,7 +251,7 @@ class Basic01 {
      * Sequence in coroutines
      */
     @Test
-    fun `invoca in sequenza due coroutine`() = runBlocking {
+    fun `Invoca in sequenza due coroutine`() = runBlocking {
         val time = measureTimeMillis {
             val one = doSomethingUsefulOne()
             val two = doSomethingUsefulTwo()
@@ -266,7 +266,7 @@ class Basic01 {
      * https://kotlinlang.org/docs/composing-suspending-functions.html#concurrent-using-async
      */
     @Test
-    fun `invoca due coroutine concorrenti`() = runBlocking {
+    fun `Invoca due coroutine concorrenti`() = runBlocking {
         val time = measureTimeMillis {
             val oneDeferred = async { doSomethingUsefulOne() }
             val twoDeferred = async { doSomethingUsefulTwo() }
@@ -282,7 +282,7 @@ class Basic01 {
      * usind thread pool of Dispatchers.IO
      */
     @Test
-    fun `invoca due coroutine in parallelo`() = runBlocking {
+    fun `Invoca due coroutine in parallelo`() = runBlocking {
         val time = measureTimeMillis {
             withContext(Dispatchers.IO) {
                 val oneDeferred = async { doSomethingUsefulOne() }
@@ -296,27 +296,11 @@ class Basic01 {
     }
 
     /**
-     * Parallel using async
-     * concurrency with coroutines is always explicit!
-     */
-    @Test
-    fun `invoca in parallelo due coroutine IO`() = runBlocking {
-        val time = measureTimeMillis {
-            withContext(Dispatchers.IO) {
-                val one = async { doSomethingUsefulOne() }
-                val two = async { doSomethingUsefulTwo() }
-                Log.d(TAG, "in parallelo (IO): ${one.await()} + ${two.await()} = ${one.await() + two.await()}")
-            }
-        }
-        Log.d(TAG, "completato in: ${time}ms")
-    }
-
-    /**
      * Concurrent using Lazily started async
      * https://kotlinlang.org/docs/composing-suspending-functions.html#lazily-started-async
      */
     @Test
-    fun `invoca due coroutine concorrenti LAZY`() = runBlocking {
+    fun `Avvia due coroutine concorrenti LAZY`() = runBlocking {
         val time = measureTimeMillis {
             val oneDeferred = async(start = CoroutineStart.LAZY) { doSomethingUsefulOne() }
             val twoDeferred = async(start = CoroutineStart.LAZY) { doSomethingUsefulTwo() }
@@ -352,7 +336,7 @@ class Basic01 {
      * https://kotlinlang.org/docs/composing-suspending-functions.html#structured-concurrency-with-async
      */
     @Test
-    fun `invoca due coroutine concorrenti strutturate`() = runBlocking {
+    fun `Invoca due coroutine concorrenti strutturate`() = runBlocking {
         val time = measureTimeMillis {
             val sum = concurrentSum()
             Log.d(TAG, "coroutine concorrenti strutturate: ${sum}")
@@ -364,6 +348,72 @@ class Basic01 {
         val one = async { doSomethingUsefulOne() }
         val two = async { doSomethingUsefulTwo() }
         one.await() + two.await()
+    }
+
+
+    @Test
+    fun `Cancellation is propagated through coroutines hierarchy`() = runBlocking<Unit> {
+        try {
+            failedConcurrentSum()
+        } catch (e: ArithmeticException) {
+            Log.d(TAG, "Computation failed with ArithmeticException")
+        }
+    }
+
+    private suspend fun failedConcurrentSum(): Int = coroutineScope {
+        val one = async(Dispatchers.IO) {
+            try {
+                delay(Long.MAX_VALUE) // Emulates very long computation
+                42
+            } finally {
+                Log.d(TAG, "First child was cancelled")
+            }
+        }
+        val two = async<Int>(Dispatchers.IO) {
+            Log.d(TAG, "Second child throws an exception")
+            throw ArithmeticException()
+        }
+        one.await() + two.await()
+    }
+
+
+    @Test
+    fun `Launch a coroutine with different Job`() = runBlocking {
+        val request = launch {
+            // it spawns two other jobs
+            launch(Job()) {
+                Log.d(TAG, "job1: I run in my own Job and execute independently!")
+                delay(1000)
+                Log.d(TAG, "job1: I am not affected by cancellation of the request")
+            }
+            // and the other inherits the parent context
+            launch {
+                delay(100)
+                Log.d(TAG, "job2: I am a child of the request coroutine")
+                delay(1000)
+                Log.d(TAG, "job2: I will not execute this line if my parent request is cancelled")
+            }
+        }
+        delay(500)
+        request.cancel() // cancel processing of the request
+        Log.d(TAG, "main: Who has survived request cancellation?")
+        delay(1000) // delay the main thread for a second to see what happens
+    }
+
+
+    @Test
+    fun `Parental responsibilities`() = runBlocking {
+        val request = launch {
+            repeat(3) { i -> // launch a few children jobs
+                launch  {
+                    delay((i + 1) * 200L) // variable delay 200ms, 400ms, 600ms
+                    Log.d(TAG, "Coroutine $i is done")
+                }
+            }
+            Log.d(TAG, "request: I'm done and I don't explicitly join my children that are still active")
+        }
+        request.join() // wait for completion of the request, including all its children
+        Log.d(TAG, "Now processing of the request is complete")
     }
 
 }
