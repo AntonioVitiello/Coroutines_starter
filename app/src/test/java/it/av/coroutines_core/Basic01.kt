@@ -14,6 +14,23 @@ class Basic01 {
         const val TAG = "Basic01"
     }
 
+    @Test
+    fun `Do something suspended`() = runBlocking {
+        val time = measureTimeMillis {
+            doSomethingSuspended()
+        }
+        Log.d(TAG, "Completed in $time ms")
+    }
+
+    private suspend fun doSomethingSuspended() = withContext(Dispatchers.IO) {
+        launch {
+            repeat(5) { i ->
+                delay(1000L) // blocking delay
+                Log.d(TAG, "$i) Hello World") // main coroutine continues while a previous one is delayed
+            }
+        }
+    }
+
     /**
      * https://github.com/Kotlin/kotlinx.coroutines/blob/master/kotlinx-coroutines-core/jvm/test/guide/example-basic-01.kt
      * Esegue una nuova coroutine e blocca il thread corrente fino al suo completamento.
@@ -405,7 +422,7 @@ class Basic01 {
     fun `Parental responsibilities`() = runBlocking {
         val request = launch {
             repeat(3) { i -> // launch a few children jobs
-                launch  {
+                launch {
                     delay((i + 1) * 200L) // variable delay 200ms, 400ms, 600ms
                     Log.d(TAG, "Coroutine $i is done")
                 }

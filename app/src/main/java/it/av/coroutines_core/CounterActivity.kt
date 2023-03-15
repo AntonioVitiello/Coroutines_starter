@@ -13,6 +13,8 @@ import kotlinx.coroutines.*
  * https://www.youtube.com/watch?v=Cq3di5lfMkY&t=1203s
  */
 class CounterActivity : AppCompatActivity() {
+//    private val mainScope = MainScope()
+
     companion object {
         const val TAG = "AAA"
     }
@@ -22,6 +24,7 @@ class CounterActivity : AppCompatActivity() {
         setContentView(R.layout.activity_counter)
 
         val result = runCatching {
+            //lifecycleScope: This scope will be cancelled when the Lifecycle is destroyed
             lifecycleScope.launch(Dispatchers.Main) { //attività consecutive
                 startTest01(2)
                 startTest02(2)
@@ -107,5 +110,9 @@ class CounterActivity : AppCompatActivity() {
             }
         }
     }
+
+//    fun destroy() {
+//        mainScope.cancel()
+//    }
 
 }

@@ -1,5 +1,7 @@
 package it.av.coroutines_core
 
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -26,9 +28,17 @@ class Log {
             log("$tag: $msg", LogLevel.WARNING)
         }
 
-        fun e(tag: String, msg: String? = null, thr: Throwable? = null) {
-            val message = { msg ?: "" }
-            log("$tag: $message, ${thr?.printStackTrace()}", LogLevel.ERROR)
+        fun e(tag: String, thr: Throwable) {
+            e(tag, "", thr)
+        }
+
+        fun e(tag: String, msg: String, thr: Throwable? = null) {
+            val stackTrace = if (thr != null) {
+                val stringWriter = StringWriter()
+                thr.printStackTrace(PrintWriter(stringWriter))
+                stringWriter.toString()
+            } else ""
+            log("$tag: $msg, $stackTrace", LogLevel.ERROR)
         }
 
         private fun log(msg: String, logLevel: LogLevel = LogLevel.EMPTY) {

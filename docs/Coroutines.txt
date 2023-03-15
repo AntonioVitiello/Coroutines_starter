@@ -13,6 +13,8 @@ https://developer.android.com/kotlin/coroutines/coroutines-overview
 Tutorial su Kotlin coroutines su Ray Wenderlich:
 https://www.raywenderlich.com/1423941-kotlin-coroutines-tutorial-for-android-getting-started
 
+Fabio Collini - GDG DevParty Together:
+https://www.youtube.com/watch?v=Cq3di5lfMkY&t=1203s
 
 dipendenze di Kotlin coroutines, e 
 dipendenza delle coroutines Android per integrare le coroutines con le funzionalità specifiche di Android come lifecycle, room, workmanager e altre librerie Android
@@ -72,6 +74,11 @@ creano implicitamente lo scope corrispondente (CoroutineScope) inoltre mentre
 launche e async sono dichiarati come estensioni Kotlin di CoroutineScope,
 runBlocking è definita come una funzione di primo livello e poiché blocca il thread
 corrente è inteso principalmente per le funzioni main() e test (@Test).
+Puoi chiamare le funzioni di sospensione solo da altre funzioni di sospensione oppure
+utilizzando un generatore di coroutine come "launch" per avviare una nuova coroutine!
+Tutte le coroutine devono essere eseguite in un dispatcher, anche quando sono in esecuzione
+sul main thread. Le coroutine possono sospendersi e il dispatcher è la cosa che sa come
+riprenderle.
 
 coroutineScope() è una funzione progettata per la scomposizione parallela del lavoro,
  crea un CoroutineScope con un Job e chiama il blocco di sospensione specificato con questo
@@ -110,3 +117,37 @@ Quando una coroutine viene lanciata nel CoroutineScope di un'altra coroutine, er
 suo contesto tramite CoroutineScope.coroutineContext e il Job della nuova coroutine diventa
 figlio del job della coroutine padre. Quando la coroutine genitore viene cancellata, anche
 tutti i suoi figli vengono cancellati ricorsivamente.
+Questa relazione genitore-figlio può essere sovrascritta in modo esplicito in due modi:
+1) Quando viene specificato in modo esplicito un ambito diverso all'avvio di una coroutine
+   ad esempio GlobalScope.launch, non eredita il Job dallo scope principale.
+2) Quando un Job diverso viene passato come contesto per la nuova coroutine sovrascrive
+   il Job nello scope del genitore.
+
+Android supporta coroutine scope in tutte le entità con il ciclo di vita:
+1) in una Activity:
+   lifecycleScope.launch {
+     //Coroutine that will be canceled when the ViewModel is cleared.
+   }
+2) in un Fragment:
+   viewLifecycleOwner.lifecycleScope.launch {
+     //Coroutine that will be canceled when the Fragment is finished.
+     viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+       //launches the block in a new coroutine every time the lifecycle
+       //is STARTED (or above) and cancels it when it's STOPPED
+     }
+   }
+3) in una ViewModel:
+   viewModelScope.launch {
+     //Coroutine that will be canceled when the ViewModel is cleared.
+   }
+
+Vedi: 
+https://developer.android.com/topic/libraries/architecture/coroutines#lifecyclescope
+
+
+async vs launch
+In generale:
+ - launch
+     si usa in una top level coroutine scope per creare un nuova coroutine
+ - async
+     si usa in una nested coroutine scope (creata probabilmente con coroutineScope) per eseguire task in parallelo
