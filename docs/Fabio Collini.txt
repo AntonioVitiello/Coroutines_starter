@@ -1,0 +1,15 @@
+GDG DevParty Together
+https://www.youtube.com/watch?v=Cq3di5lfMkY&t=1203s
+
+Coroutines on android part 1: getting the background
+https://medium.com/androiddevelopers/coroutines-on-android-part-i-getting-the-background-3e0e54d20bb
+
+Managing exceptions in nested coroutine scopes
+https://proandroiddev.com/managing-exceptions-in-nested-coroutine-scopes-9f23fd85e61
+
+async vs launch
+In generale:
+ - launch
+     si usa in una top level coroutine scope per creare un nuova coroutine
+ - async
+     si usa in una nested coroutine scope (creata probabilmente con coroutineScope) per eseguire task in parallelo
