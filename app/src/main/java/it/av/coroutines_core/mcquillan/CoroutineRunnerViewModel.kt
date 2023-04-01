@@ -4,9 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -18,11 +16,11 @@ class CoroutineRunnerViewModel(application: Application) : AndroidViewModel(appl
     private val atomicInteger = AtomicInteger(0)
     private var currentOperationId = 0
 
-    private val _disableButtonsLiveData = MutableLiveData<Boolean>()
-    val disableButtonsLiveData: LiveData<Boolean> = _disableButtonsLiveData
+    private val _disableButtonLiveData = MutableLiveData<Boolean>()
+    val disableButtonLiveData: LiveData<Boolean> = _disableButtonLiveData
 
-    private val _resourceLiveData = MutableLiveData<ResourceModel>()
-    val resourceLiveData: LiveData<ResourceModel> = _resourceLiveData
+    private val _showProgressLiveData = MutableLiveData<Boolean>()
+    val showProgressLiveData: LiveData<Boolean> = _showProgressLiveData
 
     companion object {
         const val ID_ONE_TIME_CLICK = 1
@@ -31,51 +29,54 @@ class CoroutineRunnerViewModel(application: Application) : AndroidViewModel(appl
         const val ID_CANCEL_PREVIOUS = 4
     }
 
-    fun loadDataOneTimeClick() {
-        viewModelScope.launch {
-            _disableButtonsLiveData.value = true
-            delay(1000L)
-            try {
-                val counter = getCounterForOperation(ID_ONE_TIME_CLICK)
-                val model = ResourceModel(Resource.Success("OneTimeClick: $counter"), counter == 1)
-                _resourceLiveData.value = model
-            } finally {
-                _disableButtonsLiveData.value = false
-            }
+    suspend fun loadDataOneTimeClick(): ResourceModel {
+        _disableButtonLiveData.value = true
+        _showProgressLiveData.value = true
+        delay(1000L)
+        return try {
+            val counter = getCounterForOperation(ID_ONE_TIME_CLICK)
+            ResourceModel(Resource.Success("OneTimeClick: $counter"), counter == 1)
+        } finally {
+            _showProgressLiveData.value = false
+            _disableButtonLiveData.value = false
         }
     }
 
-    suspend fun loadDataWithSingleRunner() {
+    suspend fun loadDataWithSingleRunner(): ResourceModel {
+        _showProgressLiveData.value = true
         // wait for the previous sort to complete before starting a new one
-        return singleRunner.afterPrevious {
+        val model = singleRunner.afterPrevious {
             delay(1000L)
             val counter = getCounterForOperation(ID_SINGLE_RUNNER)
-            val model = ResourceModel(Resource.Success("SingleRunner: $counter"), counter == 1)
-            _resourceLiveData.value = model
+            ResourceModel(Resource.Success("SingleRunner: $counter"), counter == 1)
         }
+        _showProgressLiveData.value = false
+        return model
     }
 
-    suspend fun loadDataWithJoinPreviousOrRun() {
+    suspend fun loadDataWithJoinPreviousOrRun(): ResourceModel {
+        _showProgressLiveData.value = true
         // Join Previous coroutine Or Run new one
         val model = controlledRunner.joinPreviousOrRun {
             delay(1000L)
             val counter = getCounterForOperation(ID_JOIN_PREVIOUS)
+            // set live data only if the data is changed!
             ResourceModel(Resource.Success("JoinPreviousOrRun: $counter"), counter == 1)
         }
-        if (_resourceLiveData.value?.resource?.data != model.resource.data) {
-            // set live data only if the data is changed!
-            _resourceLiveData.value = model
-        }
+        _showProgressLiveData.value = false
+        return model
     }
 
-    suspend fun loadDataWithCancelPreviousThenRun() {
+    suspend fun loadDataWithCancelPreviousThenRun(): ResourceModel {
+        _showProgressLiveData.value = true
         // Cancel Previous coroutine Then Run new one
         val model = controlledRunner.cancelPreviousThenRun {
             delay(1000L)
             val counter = getCounterForOperation(ID_CANCEL_PREVIOUS)
             ResourceModel(Resource.Success("CancelPreviousThenRun: $counter"), counter == 1)
         }
-        _resourceLiveData.value = model
+        _showProgressLiveData.value = false
+        return model
     }
 
     private fun getCounterForOperation(operationId: Int): Int {

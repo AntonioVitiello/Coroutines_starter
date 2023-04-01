@@ -15,33 +15,46 @@ class CoroutineRunnerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_coroutine_runner)
 
-        viewModel.resourceLiveData.observe(this, ::showData)
-        viewModel.disableButtonsLiveData.observe(this, ::disableOneTimeButton)
+        viewModel.disableButtonLiveData.observe(this, ::disableOneTimeButton)
+        viewModel.showProgressLiveData.observe(this, ::showProgress)
 
         initContents()
     }
 
     private fun initContents() {
-        oneTimeButton.setOnClickListener {
-            viewModel.loadDataOneTimeClick()
-        }
-
+        oneTimeButton.setOnClickListener { onOneTimeClickResult() }
         singleRunnerButton.setOnClickListener {
-            lifecycleScope.launch {
-                viewModel.loadDataWithSingleRunner()
-            }
+            onLoadDataSingleRunnerResult()
         }
+        joinPreviousOrRunButton.setOnClickListener { onJoinPreviousOrRunResult() }
+        cancelPreviousThenRunButton.setOnClickListener { onCancelPreviousThenRunResult() }
+    }
 
-        joinPreviousOrRunButton.setOnClickListener {
-            lifecycleScope.launch {
-                viewModel.loadDataWithJoinPreviousOrRun()
-            }
+    private fun onOneTimeClickResult() {
+        lifecycleScope.launch {
+            val model = viewModel.loadDataOneTimeClick()
+            showData(model)
         }
+    }
 
-        cancelPreviousThenRunButton.setOnClickListener {
-            lifecycleScope.launch {
-                viewModel.loadDataWithCancelPreviousThenRun()
-            }
+    private fun onLoadDataSingleRunnerResult() {
+        lifecycleScope.launch {
+            val model = viewModel.loadDataWithSingleRunner()
+            showData(model)
+        }
+    }
+
+    private fun onJoinPreviousOrRunResult() {
+        lifecycleScope.launch {
+            val model = viewModel.loadDataWithJoinPreviousOrRun()
+            showData(model)
+        }
+    }
+
+    private fun onCancelPreviousThenRunResult() {
+        lifecycleScope.launch {
+            val model = viewModel.loadDataWithCancelPreviousThenRun()
+            showData(model)
         }
     }
 
@@ -58,6 +71,14 @@ class CoroutineRunnerActivity : AppCompatActivity() {
 
     private fun disableOneTimeButton(disable: Boolean) {
         oneTimeButton.isEnabled = !disable
+    }
+
+    private fun showProgress(visible: Boolean) {
+        if (visible) {
+            progressBar.show()
+        } else {
+            progressBar.hide()
+        }
     }
 
 }
