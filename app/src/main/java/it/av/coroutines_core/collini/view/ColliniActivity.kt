@@ -1,4 +1,4 @@
-package it.av.coroutines_core.collini
+package it.av.coroutines_core.collini.view
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle

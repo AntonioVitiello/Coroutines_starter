@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".mcquillan.CoroutineRunnerActivity">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="12dp"
+        android:layout_marginVertical="20dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@id/oneTimeButton"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/resultText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:drawable/editbox_background"
+            android:enabled="false"
+            android:lineSpacingExtra="5dp"
+            android:textColor="@color/black"
+            android:textSize="12sp"
+            tools:text="@tools:sample/lorem/random" />
+    </ScrollView>
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start coroutine and disable button"
+        app:layout_constraintBottom_toTopOf="@id/oneTimeButton"
+        app:layout_constraintEnd_toEndOf="@id/oneTimeButton"
+        app:layout_constraintStart_toStartOf="@id/oneTimeButton" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/oneTimeButton"
+        android:layout_width="248dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="ONE TIME CLICK"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@id/singleRunnerButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start coroutines one at a time orderly"
+        app:layout_constraintBottom_toTopOf="@id/singleRunnerButton"
+        app:layout_constraintEnd_toEndOf="@id/singleRunnerButton"
+        app:layout_constraintStart_toStartOf="@id/singleRunnerButton" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/singleRunnerButton"
+        android:layout_width="248dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="SINGLE RUNNER"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@id/joinPreviousOrRunButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Joins previous coroutine result, if any"
+        app:layout_constraintBottom_toTopOf="@id/joinPreviousOrRunButton"
+        app:layout_constraintEnd_toEndOf="@id/joinPreviousOrRunButton"
+        app:layout_constraintStart_toStartOf="@id/joinPreviousOrRunButton" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/joinPreviousOrRunButton"
+        android:layout_width="248dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="JOIN PREVIOUS OR RUN"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@id/cancelPreviousThenRunButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cancel previous coroutine, if any"
+        app:layout_constraintBottom_toTopOf="@id/cancelPreviousThenRunButton"
+        app:layout_constraintEnd_toEndOf="@id/cancelPreviousThenRunButton"
+        app:layout_constraintStart_toStartOf="@id/cancelPreviousThenRunButton" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/cancelPreviousThenRunButton"
+        android:layout_width="248dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="CANCEL PREVIOUS THEN RUN"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

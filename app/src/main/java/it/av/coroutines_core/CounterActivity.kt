@@ -115,4 +115,26 @@ class CounterActivity : AppCompatActivity() {
 //        mainScope.cancel()
 //    }
 
+
+    // Dispatchers.Main
+    fun fetchDocs() {
+        // Dispatchers.Main
+        lifecycleScope.launch {
+            val result = get("developer.android.com")
+            // Dispatchers.Main
+            show(result)
+        }
+    }
+
+    private fun show(result: Unit) {
+        // TODO
+    }
+
+    // Dispatchers.Main
+    suspend fun get(url: String) = withContext(Dispatchers.IO) {
+        // Dispatchers.IO
+        /* perform blocking network IO here */
+    }
+
+
 }

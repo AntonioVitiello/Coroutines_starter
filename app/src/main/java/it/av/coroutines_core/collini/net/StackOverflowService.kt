@@ -1,4 +1,9 @@
-package it.av.coroutines_core.collini
+package it.av.coroutines_core.collini.net
+
+import it.av.coroutines_core.collini.net.model.Badge
+import it.av.coroutines_core.collini.net.model.Repo
+import it.av.coroutines_core.collini.net.model.Tag
+import it.av.coroutines_core.collini.net.model.User
 
 /**
  * Created by Antonio Vitiello on 13/03/2023.

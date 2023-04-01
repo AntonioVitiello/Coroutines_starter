@@ -1,5 +1,6 @@
 package it.av.coroutines_core.collini
 
+import it.av.coroutines_core.collini.net.model.User
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader

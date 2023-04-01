@@ -1,4 +1,4 @@
-package it.av.coroutines_core.collini
+package it.av.coroutines_core.collini.net
 
 /**
  * Created by Antonio Vitiello on 13/03/2023.

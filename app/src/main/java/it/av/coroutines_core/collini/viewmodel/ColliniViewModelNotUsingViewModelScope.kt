@@ -1,7 +1,10 @@
-package it.av.coroutines_core.collini
+package it.av.coroutines_core.collini.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import it.av.coroutines_core.collini.FilesStorage
+import it.av.coroutines_core.collini.net.StackOverflowService
+import it.av.coroutines_core.collini.net.model.UserStats
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 

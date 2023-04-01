@@ -69,9 +69,15 @@ La differenza principale tra asynce launch è che
    sospende l'esecuzione della coroutine fino al ritorno del risultato.
  - launch invece viene utilizzato per avviare un calcolo che non restituisce un risultato
 
-launch, async, runBlocking vengono utilizzati per avviare una nuova coroutine,
+launch, async vengono utilizzati per avviare una nuova coroutine su un CoroutineScope,
 creano implicitamente lo scope corrispondente (CoroutineScope) inoltre mentre
-launche e async sono dichiarati come estensioni Kotlin di CoroutineScope,
+launche e async sono dichiarati come estensioni Kotlin di CoroutineScope.
+In quasi tutti i casi, il modo per avviare una coroutine da una normale funzione è
+utilizzare launch.
+Una grande differenza tra launch e async è come gestiscono le eccezioni:
+async si aspetta che venga invocata await per ottenere il risultato o un'eccezione e non
+vengono generate eccezioni fino a quel momento.
+
 runBlocking è definita come una funzione di primo livello e poiché blocca il thread
 corrente è inteso principalmente per le funzioni main() e test (@Test).
 Puoi chiamare le funzioni di sospensione solo da altre funzioni di sospensione oppure
@@ -79,12 +85,25 @@ utilizzando un generatore di coroutine come "launch" per avviare una nuova corou
 Tutte le coroutine devono essere eseguite in un dispatcher, anche quando sono in esecuzione
 sul main thread. Le coroutine possono sospendersi e il dispatcher è la cosa che sa come
 riprenderle.
+Le coroutine devono essere eseguite in una CoroutineScope che tiene traccia dello stato
+della coroutine (sospese, attiva, in errore, completata). A differenza del Dispatchers che
+esegue le coroutine, una CoroutineScope si assicura che tu non si perda traccia dello stato.
+CoroutineScope inoltre può cancellare tutte le coroutine avviate in esso, ad esempio un 
+viewModelScope annullerà automaticamente qualsiasi coroutine avviata dal ViewModel quando
+questo viene cancellato.
 
 coroutineScope() è una funzione progettata per la scomposizione parallela del lavoro,
  crea un CoroutineScope con un Job e chiama il blocco di sospensione specificato con questo
  scope.
  NB: Quando una coroutine figlio in questo scope fallisce, tutto lo scope fallisce e gli
      altri figli vengono cancellati!!
+
+- supervisorScope vs. coroutineScope
+La differenza principale è che un coroutineScope si annullerà ogni volta che uno dei suoi
+figli fallisce. Pertanto, se una richiesta di rete fallisce, tutte le altre richieste
+vengono immediatamente annullate. Se invece vuoi continuare le altre richieste anche quando
+una fallisce, puoi usare un supervisorScope. Un supervisorScope non cancellerà altri child
+quando uno di loro fallisce.
 
 supervisorScope() crea un CoroutineScope con un SupervisorJob e chiama il blocco di
  sospensione specificato con questo scope.

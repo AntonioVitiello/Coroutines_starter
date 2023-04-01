@@ -1,7 +1,12 @@
-package it.av.coroutines_core.collini
+package it.av.coroutines_core.collini.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import it.av.coroutines_core.collini.*
+import it.av.coroutines_core.collini.net.*
+import it.av.coroutines_core.collini.net.model.Repo
+import it.av.coroutines_core.collini.net.model.User
+import it.av.coroutines_core.collini.net.model.UserStats
 import kotlinx.coroutines.*
 import kotlinx.coroutines.selects.select
 
@@ -265,6 +270,31 @@ class ColliniViewModel(private val api: StackOverflowService) : ViewModel() {
 
     private fun updateUi(repos: List<Repo>) {
         // TODO
+    }
+
+    /**
+     * è lecito scrivere un ciclo infinito in una coroutine in un viewModelScope senza creare leaks
+     * poiché viewModelScope eseguirà automaticamente cancel sulle sue coroutine quando il ViewModel cessa
+     */
+    fun runForever() {
+        // start a new coroutine in the ViewModel
+        viewModelScope.launch {
+            // cancelled when the ViewModel is cleared
+            while(true) {
+                delay(1_000)
+                // do something every second
+            }
+        }
+    }
+
+    /**
+     * questa funzione viene invocata quando questo ViewModel sta per essere distrutto
+     * qui ad esempio viene eseguito il viewModelScope.cancel() per evitare memory leak o job leak
+     * see: https://medium.com/androiddevelopers/coroutines-on-android-part-ii-getting-started-3bff117176dd
+     */
+    override fun onCleared() {
+        super.onCleared()
+        viewModelScope.cancel()
     }
 
 }

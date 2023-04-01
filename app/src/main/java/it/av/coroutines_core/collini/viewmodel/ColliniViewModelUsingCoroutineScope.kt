@@ -1,6 +1,11 @@
-package it.av.coroutines_core.collini
+package it.av.coroutines_core.collini.viewmodel
 
 import androidx.lifecycle.ViewModel
+import it.av.coroutines_core.collini.FilesStorage
+import it.av.coroutines_core.collini.net.StackOverflowService
+import it.av.coroutines_core.collini.net.model.Tag
+import it.av.coroutines_core.collini.net.model.UserStats
+import it.av.coroutines_core.collini.net.model.Badge
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.async
 
