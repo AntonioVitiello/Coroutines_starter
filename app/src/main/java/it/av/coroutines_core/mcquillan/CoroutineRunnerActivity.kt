@@ -23,9 +23,7 @@ class CoroutineRunnerActivity : AppCompatActivity() {
 
     private fun initContents() {
         oneTimeButton.setOnClickListener { onOneTimeClickResult() }
-        singleRunnerButton.setOnClickListener {
-            onLoadDataSingleRunnerResult()
-        }
+        singleRunnerButton.setOnClickListener { onLoadDataSingleRunnerResult() }
         joinPreviousOrRunButton.setOnClickListener { onJoinPreviousOrRunResult() }
         cancelPreviousThenRunButton.setOnClickListener { onCancelPreviousThenRunResult() }
     }

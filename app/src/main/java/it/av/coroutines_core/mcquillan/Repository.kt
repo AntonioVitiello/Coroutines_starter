@@ -1,5 +1,10 @@
 package it.av.coroutines_core.mcquillan
 
+import it.av.coroutines_core.mcquillan.CoroutineRunnerViewModel.Companion.ID_CANCEL_PREVIOUS
+import it.av.coroutines_core.mcquillan.CoroutineRunnerViewModel.Companion.ID_JOIN_PREVIOUS
+import it.av.coroutines_core.mcquillan.CoroutineRunnerViewModel.Companion.ID_ONE_TIME_CLICK
+import it.av.coroutines_core.mcquillan.CoroutineRunnerViewModel.Companion.ID_SINGLE_RUNNER
+import kotlinx.coroutines.delay
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -9,9 +14,17 @@ class Repository {
     private val atomicInteger = AtomicInteger(0)
     private var currentOperationId = 0
 
-    fun loadData(operationId: Int): ResourceModel {
+    suspend fun loadData(operationId: Int): ResourceModel {
+        delay(1000L)
         val counter = getCounterForOperation(operationId)
-        return ResourceModel(Resource.Success("CancelPreviousThenRun: $counter"), counter == 1)
+        val msg = when (operationId) {
+            ID_ONE_TIME_CLICK -> "OneTimeClick: $counter"
+            ID_SINGLE_RUNNER -> "SingleRunner: $counter"
+            ID_JOIN_PREVIOUS -> "JoinPreviousOrRun: $counter"
+            ID_CANCEL_PREVIOUS -> "CancelPreviousThenRun: $counter"
+            else -> "undefined"
+        }
+        return ResourceModel(Resource.Success(msg), counter == 1)
     }
 
     private fun getCounterForOperation(operationId: Int): Int {
