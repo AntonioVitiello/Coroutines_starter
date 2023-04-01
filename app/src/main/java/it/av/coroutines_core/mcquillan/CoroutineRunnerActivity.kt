@@ -16,7 +16,6 @@ class CoroutineRunnerActivity : AppCompatActivity() {
         setContentView(R.layout.activity_coroutine_runner)
 
         viewModel.disableButtonLiveData.observe(this, ::disableOneTimeButton)
-        viewModel.showProgressLiveData.observe(this, ::showProgress)
 
         initContents()
     }
@@ -30,29 +29,37 @@ class CoroutineRunnerActivity : AppCompatActivity() {
 
     private fun onOneTimeClickResult() {
         lifecycleScope.launch {
+            showProgress(true)
             val model = viewModel.loadDataOneTimeClick()
             showData(model)
+            showProgress(false)
         }
     }
 
     private fun onLoadDataSingleRunnerResult() {
         lifecycleScope.launch {
+            showProgress(true)
             val model = viewModel.loadDataWithSingleRunner()
             showData(model)
+            showProgress(false)
         }
     }
 
     private fun onJoinPreviousOrRunResult() {
         lifecycleScope.launch {
+            showProgress(true)
             val model = viewModel.loadDataWithJoinPreviousOrRun()
             showData(model)
+            showProgress(false)
         }
     }
 
     private fun onCancelPreviousThenRunResult() {
         lifecycleScope.launch {
+            showProgress(true)
             val model = viewModel.loadDataWithCancelPreviousThenRun()
             showData(model)
+            showProgress(false)
         }
     }
 
