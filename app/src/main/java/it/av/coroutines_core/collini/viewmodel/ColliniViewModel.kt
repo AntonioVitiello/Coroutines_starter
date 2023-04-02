@@ -2,8 +2,9 @@ package it.av.coroutines_core.collini.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import it.av.coroutines_core.collini.*
-import it.av.coroutines_core.collini.net.*
+import it.av.coroutines_core.collini.FilesStorage
+import it.av.coroutines_core.collini.net.FetchResult
+import it.av.coroutines_core.collini.net.StackOverflowService
 import it.av.coroutines_core.collini.net.model.Repo
 import it.av.coroutines_core.collini.net.model.User
 import it.av.coroutines_core.collini.net.model.UserStats
@@ -280,7 +281,7 @@ class ColliniViewModel(private val api: StackOverflowService) : ViewModel() {
         // start a new coroutine in the ViewModel
         viewModelScope.launch {
             // cancelled when the ViewModel is cleared
-            while(true) {
+            while (true) {
                 delay(1_000)
                 // do something every second
             }

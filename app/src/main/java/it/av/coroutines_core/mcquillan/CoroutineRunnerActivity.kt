@@ -2,6 +2,7 @@ package it.av.coroutines_core.mcquillan
 
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import it.av.coroutines_core.R
@@ -16,6 +17,7 @@ class CoroutineRunnerActivity : AppCompatActivity() {
         setContentView(R.layout.activity_coroutine_runner)
 
         viewModel.disableButtonLiveData.observe(this, ::disableOneTimeButton)
+        viewModel.errorLiveData.observe(this, ::showErrorDialog)
 
         initContents()
     }
@@ -63,12 +65,12 @@ class CoroutineRunnerActivity : AppCompatActivity() {
         }
     }
 
-    private fun showData(model: ResourceModel) {
-        if (model.resource is Resource.Success) {
+    private fun showData(dataModel: DataModel?) {
+        dataModel?.let { model ->
             val msg = if (model.clean) {
-                model.resource.data
+                model.message
             } else {
-                "${resultText.text}\n${model.resource.data}"
+                "${resultText.text}\n${model.message}"
             }
             resultText.text = msg
         }
@@ -84,6 +86,14 @@ class CoroutineRunnerActivity : AppCompatActivity() {
         } else {
             progressBar.hide()
         }
+    }
+
+    private fun showErrorDialog(dataModel: DataModel) {
+        AlertDialog.Builder(this)
+            .setMessage(dataModel.message)
+            .setPositiveButton(getString(android.R.string.ok), null)
+            .setCancelable(false)
+            .show()
     }
 
 }

@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class Repository {
     private val atomicInteger = AtomicInteger(0)
     private var currentOperationId = 0
+    private val countForError = 3
 
     suspend fun loadData(operationId: Int): ResourceModel {
         delay(1000L)
@@ -28,6 +29,10 @@ class Repository {
     }
 
     private fun getCounterForOperation(operationId: Int): Int {
+        if (atomicInteger.get() == countForError) {
+            atomicInteger.set(countForError + 1)
+            throw NumberFormatException("Error: TEST EXCEPTIONS!")
+        }
         if (currentOperationId != operationId) {
             atomicInteger.set(0)
         }
