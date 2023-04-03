@@ -13,7 +13,8 @@ import kotlinx.coroutines.CancellationException
 class CoroutineRunnerViewModel(application: Application) : AndroidViewModel(application) {
     private val singleRunner = SingleRunner()
     private val controlledRunner = ControlledRunner<DataModel?>()
-    private val repository = Repository()
+//    private val repository = Repository() // execute operation in Thread main-safe
+    private val repository = RepositoryIO() // execute operation in Thread IO
 
     private val _disableButtonLiveData = MutableLiveData<Boolean>()
     val disableButtonLiveData: LiveData<Boolean> = _disableButtonLiveData

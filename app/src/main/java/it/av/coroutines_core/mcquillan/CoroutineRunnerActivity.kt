@@ -1,12 +1,15 @@
 package it.av.coroutines_core.mcquillan
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import it.av.coroutines_core.R
 import kotlinx.android.synthetic.main.activity_coroutine_runner.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 class CoroutineRunnerActivity : AppCompatActivity() {
@@ -39,6 +42,13 @@ class CoroutineRunnerActivity : AppCompatActivity() {
     }
 
     private fun onLoadDataSingleRunnerResult() {
+// CoroutineExceptionHandler sample
+//        val handler = CoroutineExceptionHandler { _, exception ->
+//            Log.e("CoroutineRunnerActivity", "CoroutineExceptionHandler got $exception")
+//        }
+//        lifecycleScope.launch(handler) {
+//            throw AssertionError()
+//        }
         lifecycleScope.launch {
             showProgress(true)
             val model = viewModel.loadDataWithSingleRunner()
