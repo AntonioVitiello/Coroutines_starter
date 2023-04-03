@@ -25,16 +25,16 @@ class Repository {
             ID_CANCEL_PREVIOUS -> "CancelPreviousThenRun: $counter"
             else -> "undefined"
         }
-        return ResourceModel(Resource.Success(msg), counter == 1)
+        return ResourceModel(Resource.Success(msg), counter == 1 && operationId != ID_JOIN_PREVIOUS)
     }
 
     private fun getCounterForOperation(operationId: Int): Int {
-        if (atomicInteger.get() == countForError) {
-            atomicInteger.set(countForError + 1)
-            throw NumberFormatException("Error: TEST EXCEPTIONS!")
-        }
         if (currentOperationId != operationId) {
             atomicInteger.set(0)
+        }
+        if (atomicInteger.get() == countForError) {
+            atomicInteger.set(countForError + 1)
+            throw NumberFormatException("EXCEPTION TEST: countForError=$countForError")
         }
         currentOperationId = operationId
         return atomicInteger.addAndGet(1)
