@@ -16,7 +16,10 @@ import kotlinx.coroutines.selects.select
  * see:
  * https://proandroiddev.com/async-code-using-kotlin-coroutines-233d201099ff
  * https://proandroiddev.com/managing-exceptions-in-nested-coroutine-scopes-9f23fd85e61
- * https://www.youtube.com/watch?v=Cq3di5lfMkY&t=1203s
+ * Collini speech:
+ * https://www.youtube.com/watch?v=Cq3di5lfMkY&t=1203s *
+ * Exception handling:
+ * https://youtu.be/Cq3di5lfMkY?t=1981
  */
 class ColliniViewModel(private val api: StackOverflowService) : ViewModel() {
     private val storage = FilesStorage()
@@ -51,7 +54,7 @@ class ColliniViewModel(private val api: StackOverflowService) : ViewModel() {
                     dataFromCache                               //Thread: IO
                 } else {                                        //Thread: IO
                     val fetchedData = api.fetchTopUsers()[0]    //Thread: IO
-                    storage.saverUser(fetchedData)             //Thread: IO
+                    storage.saverUser(fetchedData)              //Thread: IO
                     fetchedData                                 //Thread: IO
                 }                                               //Thread: IO
             }                                                   //Thread: IO
@@ -101,6 +104,8 @@ class ColliniViewModel(private val api: StackOverflowService) : ViewModel() {
      * chiamate REST parallele
      * se fallisce una delle due rest badge o tag, viene cancellato il coroutineScope ma non la topUser
      * se fallisce topUser, viene cancellato il viewModelScope e quindi tutte le chiamate e killa l'app
+     * see:
+     * https://youtu.be/Cq3di5lfMkY?t=1981
      */
     suspend fun topUser() {
         viewModelScope.launch {
@@ -124,6 +129,8 @@ class ColliniViewModel(private val api: StackOverflowService) : ViewModel() {
      * chiamate REST parallele
      * se fallisce una delle due rest badge o tag, l'altra continua
      * se fallisce topUser, viene cancellato il viewModelScope e quindi tutte le chiamate e killa l'app
+     * see:
+     * https://youtu.be/Cq3di5lfMkY?t=1981
      */
     suspend fun topUserWithRunCatch() {
         viewModelScope.launch {
