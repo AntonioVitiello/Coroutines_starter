@@ -220,7 +220,7 @@ class CoroutineExceptions {
         try {
             val (one, two) = coroutineScope {
                 val deferredOne = async(testDispatcher) { doSomethingUsefulOne() }
-                val deferredTwo = async(testDispatcher) { doSomethingUsefulTwo(false) }
+                val deferredTwo = async(testDispatcher) { doSomethingUsefulTwo(success = false) }
                 deferredOne.await() to deferredTwo.await()
             }
             updateUI(one, two)
@@ -242,7 +242,7 @@ class CoroutineExceptions {
         val (one, two) = try {
             coroutineScope {
                 val deferredOne = async(testDispatcher) { doSomethingUsefulOne() }
-                val deferredTwo = async(testDispatcher) { doSomethingUsefulTwo(false) }
+                val deferredTwo = async(testDispatcher) { doSomethingUsefulTwo(success = false) }
                 deferredOne.await() to deferredTwo.await()
             }
         } catch (exc: Exception) {
@@ -264,7 +264,7 @@ class CoroutineExceptions {
 
         val resultOne = async(testDispatcher) {
             runCatching {
-                doSomethingUsefulOne(false)
+                doSomethingUsefulOne(success = false)
             }
         }.await()
 
@@ -288,7 +288,7 @@ class CoroutineExceptions {
         delay(1000L) // pretend we are doing something useful here
         Log.d(TAG, "executing: doSomethingUsefulOne")
         return if (success) {
-            13
+            111
         } else {
             throw ArithmeticException("doSomethingUsefulOne: error emulated for test!")
         }
@@ -298,7 +298,7 @@ class CoroutineExceptions {
         delay(1000L) // pretend we are doing something useful here, too
         Log.d(TAG, "executing: doSomethingUsefulTwo")
         return if (success) {
-            29
+            222
         } else {
             throw IndexOutOfBoundsException("doSomethingUsefulTwo: error emulated for test!")
         }
@@ -328,7 +328,7 @@ class CoroutineExceptions {
             Log.d(TAG, "launch doSomethingUsefulOne")
             val job1 = launch(handler) {
                 delay(500)
-                doSomethingUsefulOne(false)
+                doSomethingUsefulOne(success = false)
                 Log.d(TAG, "will not be executed: doSomething after a fail in this scope!!!")
                 doSomethingUsefulOne()
             }
@@ -366,7 +366,7 @@ class CoroutineExceptions {
         Log.d(TAG, "launch doSomethingUsefulOne")
         val job1 = scope.launch(handler) {
             delay(500)
-            doSomethingUsefulOne(false)
+            doSomethingUsefulOne(success = false)
             Log.d(TAG, "will not be executed: doSomething after a fail in this scope!!!")
             doSomethingUsefulOne()
         }
@@ -377,6 +377,65 @@ class CoroutineExceptions {
         }
         joinAll(job1, job2)
         Log.d(TAG, "All DONE!")
+    }
+
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `exception in nested async`() = runTest {
+        val scope = CoroutineScope(Job())
+        val job = scope.launch {
+            val deferred = async {
+                try {
+                    doSomethingUsefulOne(success = false)
+                } catch (exc: Exception) {
+                    Log.e(TAG, "Error occurred: $exc")
+                    -1
+                }
+            }
+            val usefulOne = deferred.await()
+
+            delay(150L)
+            val usefulTwo = doSomethingUsefulTwo()
+            Log.d(TAG, "Results: $usefulOne, $usefulTwo")
+        }
+        job.join()
+        Log.d(TAG, "All DONE!")
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `exception in root async with SupervisorJob`() = runTest {
+        supervisorScope {
+            val deferred = async { doSomethingUsefulOne(success = false) }
+            val usefulOne = try {
+                deferred.await()
+            } catch (exc: Exception) {
+                Log.e(TAG, "Error occurred: $exc")
+                -1
+            }
+
+            delay(150L)
+            val usefulTwo = async { doSomethingUsefulTwo() }.await()
+            Log.d(TAG, "All DONE, results: $usefulOne, $usefulTwo")
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `exception in root async`() = runTest {
+        val scope = CoroutineScope(Job())
+        val deferred = scope.async { doSomethingUsefulOne(success = false) }
+        val usefulOne = try {
+            deferred.await()
+        } catch (exc: Exception) {
+            Log.e(TAG, "Error occurred: $exc")
+            -1
+        }
+
+        delay(150L)
+        val usefulTwo = doSomethingUsefulTwo()
+        Log.d(TAG, "All DONE, results: $usefulOne, $usefulTwo")
     }
 
 }

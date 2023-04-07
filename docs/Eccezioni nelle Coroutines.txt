@@ -1,0 +1,160 @@
+Nelle Coroutines uncaught exceptions verranno sempre lanciate, tuttavia diversi tipi di coroutines builders trattano le eccezioni in diversi modi.
+
+-- Launch --
+Usando Launch le eccezioni verranno lanciate NON APPENA SI VERIFICANO, pertanto si può usare try/catch o runCatching per racchiudere il codice che può generare eccezioni.
+
+Esempio:
+scope.launch { 
+    try { 
+        codeThatCanThrowExceptions() 
+    } catch(e: Exception) { 
+        // Gestisci eccezione 
+    } 
+}
+
+
+-- Async --
+Con async:
+ - QUANDO È USATO COME ROOT COROUTINE (coroutine che sono un figlio diretto di un'istanza CoroutineScopeo supervisorScope), le eccezioni non vengono lanciate automaticamente ma vengono lanciate quando si chiama .await()
+
+Esempio:
+supervisorScope { 
+    val deferred = async { 
+        codeThatCanThrowExceptions() 
+    }
+    try { 
+        deferred.await() 
+    } catch (e: Exception) { 
+        // Gestisce l'eccezione generata in async 
+    } 
+}
+
+Nel caso sopra usiamo come scope supervisorScope (una funzione per creare un SupervisorJob) lascia che la coroutine gestisca l'eccezione,
+mentre il Job lo propaga automaticamente nella gerarchia così che il blocco try/catch non cattura l'eccezione.
+
+Esempio:
+coroutineScope { 
+    try { 
+        val deferred = async { 
+            codeThatCanThrowExceptions() 
+        } 
+        deferred.await() 
+    } catch(e: Exception) { 
+        // L'eccezione generata in async NON VERRÀ RILEVATA QUI ma propagata fino allo scope padre
+    } 
+}
+
+Inoltre, le eccezioni che si verificano nelle coroutine create da altre coroutine verranno sempre propagate indipendentemente dal costruttore di coroutine.
+
+Esempio:
+val scope = CoroutineScope(Job())
+scope.launch {
+    async {
+        // Se async throws una Exception, launch lancia questa eccezione immediatamente senza chiamare .await()
+        // poichè in questo caso è launch la coroutine root mentre async è il figlio di launch.
+    }
+}
+
+In generale le eccezioni lanciate in un coroutineScope builder o nelle coroutine create da altre coroutine non verranno catturate in un try/catch, ma propagate allo scope padre.
+
+
+-- SupervisorJob --
+Quando una coroutine fallisce con un'eccezione, propagherà tale eccezione fino al suo genitore che cancellerà il resto dei suoi figli!
+Quando NON si desidera che un errore in una coroutine child annulli il genitore e i fratelli si può usare un SupervisorJob.
+supervisorScope è una funzione per creare un SupervisorJob, in questo scope se un child fallisce, lo scope non verrà annullato e gli altri child non saranno cancellati.
+Se un figlio diretto di SupervisorJob genera un'eccezione, questo non propagherà l'eccezione nella gerarchia e consentirà alla sua coroutine di gestirla.
+SupervisorJob funziona come descritto su, solo quando è stato creato utilizzando supervisorScope{...} o val scope = CoroutineScope(SupervisorJob())
+
+Esempio 1:
+val scope = CoroutineScope(SupervisorJob())
+scope.launch {
+    // Child#1
+}
+scope.launch {
+    // Child#2
+}
+
+Qui se Child#1 fallisce, Child#2 non viene cancellato, così come lo scope.
+
+Esempio 2:
+val scope = CoroutineScope(Job())
+scope.launch {
+    supervisorScope {
+        launch {
+            // Child#1
+        }
+        launch {
+            // Child#2
+        }
+    }
+}
+
+Anche in questo caso in cui il SupervisorJob (creato con supervisorScope) è figlio di uno CoroutineScope, se Child#1 fallisce, Child#2 non viene cancellato così come lo scope; mentre se avessimo utilizzato una coroutineScope il fallimento di Child#1 o di Child#2 si sarebbe immediatamente propagato al suo scope genitore che avrebbe cancellato l'altro Child.
+
+Con launch, le eccezioni verranno lanciate non appena si verificano, e si possono catturare con try/catch o runCatching direttamente nella coroutine;
+mentre con async usato come root coroutine (figlio diretto di un'istanza CoroutineScope o supervisorScope) le eccezioni non vengono lanciate automaticamente, ma quando chiami .await() 
+Perciò per gestire le eccezioni generate da una async eseguita come root coroutine, puoi avvolgere la .await() all'interno di un try/catch
+
+
+-- CoroutineExceptionHandler --
+CoroutineExceptionHandler (CEH) è un elemento facoltativo di a CoroutineContext che consente di gestire le eccezioni non rilevate (uncaught).
+
+Esempio:
+val handler = CoroutineExceptionHandler {
+    context, exception -> println("Caught $exception")
+}
+
+In questo caso le eccezioni verranno rilevate se:
+1) l'eccezione viene generata in launch (non con async!)
+2) se CEH si trova nel CoroutineContext di uno Scope 
+   Esempio:
+   val handler = val handler = CoroutineExceptionHandler {_, exception -> println("Caught $exception") }
+   val scope = CoroutineScope(Job() + handler)
+3) se CEH È nella ROOT COROUTINE (non funziona invece se è in una coroutine child ad esempio una inner launch)
+   Esempio:
+   val handler = val handler = CoroutineExceptionHandler {_, exception -> println("Caught $exception") }
+   val scope = CoroutineScope(Job())
+   scope.launch(handler) {
+   	launch {
+   	   throw Exception("Failed coroutines!")
+   	}
+   }
+4) se CEH si trova in una coroutine che è un child diretto di un supervisorScope
+   Esempio:
+   val handler = val handler = CoroutineExceptionHandler {_, exception -> println("Caught $exception") }
+   val scope = CoroutineScope(Job())
+   scope.launch {
+   	supervisorScope {
+   		launch(handler) {
+   		   throw Exception("Failed coroutines!")
+   		}
+   	}
+   }
+   
+
+Esempio:
+val scope = CoroutineScope(Job())
+val handler = CoroutineExceptionHandler {
+    context, exception -> println("Caught $exception")
+}
+scope.launch(handler) {
+    launch {
+        throw Exception("Failed coroutine")
+    }
+}
+
+Mentre CoroutineExceptionHandler NON FUNZIONA se è installato in una COROUTINE INTERNA:
+val scope = CoroutineScope(Job())
+val handler = CoroutineExceptionHandler {
+    context, exception -> println("Caught $exception")
+}
+scope.launch {
+    launch(handler) {
+        throw Exception("Failed coroutine")
+    }
+}
+
+
+-- Ricorda: --
+utilizza SupervisorJob quando vuoi evitare di propagare la cancellation a seguito di una Exception;
+invece Job per far eseguire la cancellation dopo una eccezione.

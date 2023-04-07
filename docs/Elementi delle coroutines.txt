@@ -1,0 +1,31 @@
+CoroutineScope
+serve per avviare e controllare il ciclo di vita delle coroutine create usando launcho e async, che sono funzioni di estensione su CoroutineScope.
+Una coroutine in esecuzione può essere annullata chiamando scope.cancel()
+CoroutineScope viene creato dalle funzioni viewModelScope e lifecycleScope che prendono CoroutineContext come parametro del costruttore
+
+Esempio:
+val scope = CoroutineScope(Job() + Dispatchers.Main)
+val job = scope.launch {
+    // new coroutine
+}
+
+Job
+Un Job è un gestore della coroutine, la sua reference, identifica in modo univoco la coroutine e ne gestisce il ciclo di vita
+Job ha uno stato tra: 
+- Nuovo
+- Attivo	(isActive)
+- In Completamento
+- Completo	(isCompleted)
+- In Cancellazione
+- Cancellato	(isCancelled)
+
+SupervisorJob
+è una differente implementazione di Job che cambia il modo in cui il suo CoroutineScope gestisce le eccezioni
+ 
+CoroutineContext
+è un insieme di elementi che definiscono il comportamento di una coroutine quali:
+- Job: controlla il ciclo di vita della coroutine;
+- CoroutineDispatcher: invia il lavoro al thread appropriato;
+- CoroutineName: nome della coroutine, utile per il debug;
+- CoroutineExceptionHandler: per gestire le eccezioni non rilevate.
+

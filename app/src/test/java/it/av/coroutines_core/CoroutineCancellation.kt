@@ -111,10 +111,7 @@ class CoroutineCancellation {
     fun `cooperative coroutine code #3`(): Unit = runBlocking {
         val job = launch(Dispatchers.Default) {
             try {
-                repeat(5) { i: Int ->
-                    Log.d(TAG, "Hello $i")
-                    delay(500L)
-                }
+                doSomeWork()
             } catch (exc: Exception) {
                 Log.e(TAG, "Error occurred: $exc")
             }
@@ -125,6 +122,71 @@ class CoroutineCancellation {
         job.cancel()
         // job.join()
         Log.d(TAG, "Done!")
+    }
+
+    @Test
+    fun `cleanup on cancellation`(): Unit = runBlocking {
+        val job = launch(Dispatchers.Default) {
+            try {
+                doSomeWork()
+            } catch (exc: CancellationException) {
+                Log.d(TAG, "Work cancelled!")
+            } finally {
+                Log.d(TAG, "Clean up!")
+                withContext(NonCancellable) {
+                    delay(1_000L)
+                    Log.d(TAG, "Cleanup done!")
+                }
+            }
+        }
+        job.invokeOnCompletion {
+            Log.d(TAG, "Job complete!")
+        }
+        delay(1_000L)
+        Log.d(TAG, "Cancel!")
+        job.cancel()
+        job.join()
+        Log.d(TAG, "Done!")
+    }
+
+    @Test
+    fun `cleanup on cancellation with suspendCancellableCoroutine`(): Unit = runBlocking {
+        val job = launch(Dispatchers.Default) {
+            try {
+                doSomeWorkCancelable()
+            } catch (exc: CancellationException) {
+                Log.d(TAG, "Work cancelled!")
+            }
+        }
+        job.invokeOnCompletion {
+            Log.d(TAG, "Job complete!")
+        }
+        delay(1_000L)
+        Log.d(TAG, "Cancel!")
+        job.cancel()
+        job.join()
+        Log.d(TAG, "Done!")
+    }
+
+
+    private suspend fun doSomeWork() {
+        repeat(5) { i: Int ->
+            Log.d(TAG, "Hello $i")
+            delay(500L)
+        }
+    }
+
+    private suspend fun doSomeWorkCancelable() {
+        try {
+            doSomeWork()
+        } catch (exc: CancellationException) {
+            Log.d(TAG, "doSomeWork cancelled!")
+        }
+        return suspendCancellableCoroutine { continuation ->
+            continuation.invokeOnCancellation {
+                Log.d(TAG, "Clean up!")
+            }
+        }
     }
 
 }
